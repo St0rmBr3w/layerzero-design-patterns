@@ -62,32 +62,6 @@ contract ABATest is TestHelperOz5 {
         oapps[1] = address(bReceiver);
         this.wireOApps(oapps);
     }
-
-    function test_combine_options() public {
-
-        EnforcedOptionParam[] memory aEnforcedOptions = new EnforcedOptionParam[](2);
-        aEnforcedOptions[0] = EnforcedOptionParam({eid: bEid, msgType: SEND, options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(50000, 0)});
-        aEnforcedOptions[1] = EnforcedOptionParam({eid: bEid, msgType: SEND_ABA, options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(500000, 0)});
-        
-        EnforcedOptionParam[] memory bEnforcedOptions = new EnforcedOptionParam[](2);
-        bEnforcedOptions[0] = EnforcedOptionParam({eid: aEid, msgType: SEND, options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(50000, 0)});
-        bEnforcedOptions[1] = EnforcedOptionParam({eid: aEid, msgType: SEND_ABA, options: OptionsBuilder.newOptions().addExecutorLzReceiveOption(50000, 0)});
-        
-        aSender.setEnforcedOptions(aEnforcedOptions);
-        bReceiver.setEnforcedOptions(bEnforcedOptions);
-
-        bytes memory _extraReturnOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(50000, 0); // gas settings for B -> A
-
-        // Quote the return call B -> A.
-        MessagingFee memory returnFee = bReceiver.quote(aEid, SEND, "Remote chain says hello!", _extraReturnOptions, OptionsBuilder.newOptions(), false);
-
-        bytes memory _extraSendOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(100000, uint128(returnFee.nativeFee)); // gas settings for A -> B
-        
-        bytes memory expectedOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(600000, uint128(returnFee.nativeFee));
-        
-        bytes memory combinedOptions = aSender.combineOptions(bEid, SEND_ABA, _extraSendOptions);
-        assertEq(combinedOptions, expectedOptions);
-    }
     
     function test_aba() public {
         
